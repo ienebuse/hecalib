@@ -6,7 +6,7 @@
 import numpy as np
 from numpy.linalg import inv, det, svd, eig, norm, pinv
 from scipy import optimize
-from hecalib.HandEyeCalibration import Calibration
+from .HandEyeCalibration import Calibration
 
 
 class Cal_Daniilidis(Calibration):
