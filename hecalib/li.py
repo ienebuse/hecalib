@@ -11,12 +11,6 @@ class Cal_Li(Calibration):
     
     def __init__(self) -> None:
         super().__init__()
-        self.__S = np.empty(shape=[0,12])
-        self.__T = np.empty(shape=[0,1])
-        self.__RA_I = np.empty(shape=[0,3])
-        self.__TA = np.empty(shape=[0,1])
-        self.__TB = np.empty(shape=[0,1])
-
     
     def calibrate(self, A,B,X=None,rel=False):
         '''Computes the estimated rotation matrix and translation vector as well as the relative and 
@@ -26,6 +20,7 @@ class Cal_Li(Calibration):
         N = self._A.shape[0]
         I = np.eye(3)
         I9 = np.eye(9)
+        _S = np.empty(shape=[0,12])
 
         for i in range(N):
             An = self._A[i]
@@ -39,12 +34,9 @@ class Cal_Li(Calibration):
             s1 = np.hstack([I9 - np.kron(RB,RA), np.zeros((9,3))])
             s2 = np.hstack([np.kron(tB.T,tA_), np.dot(tA_,(I-RA))])
             S = np.vstack([s1, s2])
-            T = np.vstack([np.zeros((9,1)),tA.reshape(3,1)])
+            _S = np.vstack([_S,S])
 
-            self.__S = np.vstack([self.__S,S])
-            self.__T = np.vstack([self.__T,T])
-
-        Rx_tX = self._solve_svd(self.__S)
+        Rx_tX = self._solve_svd(_S)
         self._Rx,self._Tx = self.__get_rx_tx(Rx_tX)
         self._Rx = self._get_orth_mat(self._Rx)
         
@@ -55,16 +47,6 @@ class Cal_Li(Calibration):
             return self._Rx, self._Tx, rel_err, abs_err
 
         return self._Rx, self._Tx, rel_err
-
-    def __get_translation(self,R,RA_I,TA,TB):
-        '''Computes the translation estimate based on the estimated rotation'''
-        RxTB = np.dot(R,TB[:3,0]).reshape(3,1)
-        for i in range(1,int((TB.shape[0])/3)):
-            RxTB = np.append(RxTB,np.dot(R,TB[i*3:(i+1)*3,0].reshape(3,1)),axis=0)
-        
-        T = RxTB - TA
-        tX = np.dot(pinv(RA_I),T)
-        return tX
 
     @staticmethod
     def __get_rx_tx(X):

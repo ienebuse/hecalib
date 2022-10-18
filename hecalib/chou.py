@@ -12,11 +12,6 @@ class Cal_Chou(Calibration):
     
     def __init__(self) -> None:
         super().__init__()
-        self.__G = np.empty(shape=[0,4])
-        self.__RA_I = np.empty(shape=[0,3])
-        self.__TA = np.empty(shape=[0,1])
-        self.__TB = np.empty(shape=[0,1])
-
     
     def calibrate(self, A,B,X=None,rel=False):
         '''Computes the estimated rotation matrix and translation vector as well as the relative and 
@@ -25,6 +20,10 @@ class Cal_Chou(Calibration):
         super().calibrate(A,B,X,rel)
         N = self._A.shape[0]
         I = np.eye(3)
+        _G = np.empty(shape=[0,4])
+        _RA_I = np.empty(shape=[0,3])
+        _TA = np.empty(shape=[0,1])
+        _TB = np.empty(shape=[0,1])
 
         for i in range(N):
             An = self._A[i]
@@ -43,14 +42,14 @@ class Cal_Chou(Calibration):
             RA_I = RA - I
 
 
-            self.__G = np.vstack([self.__G,G])
-            self.__RA_I = np.vstack([self.__RA_I,RA_I])
-            self.__TA = np.vstack([self.__TA,tA])
-            self.__TB = np.vstack([self.__TB,tB])
+            _G = np.vstack([_G,G])
+            _RA_I = np.vstack([_RA_I,RA_I])
+            _TA = np.vstack([_TA,tA])
+            _TB = np.vstack([_TB,tB])
 
-        x = self._solve_svd(self.__G)
+        x = self._solve_svd(_G)
         self._Rx = self._quaternion_2_mat(x.ravel())
-        self._Tx = self.__get_translation(self._Rx,self.__RA_I,self.__TA,self.__TB).reshape(3,1)
+        self._Tx = self.__get_translation(self._Rx,_RA_I,_TA,_TB).reshape(3,1)
 
         rel_err = self._relative_error()
 

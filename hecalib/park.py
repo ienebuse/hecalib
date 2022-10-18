@@ -11,12 +11,7 @@ from .hand_eye_calibration import Calibration
 class Cal_Park(Calibration):
     
     def __init__(self) -> None:
-        super().__init__()
-        # self.__M = np.zeros((3,3))
-        self.__RA_I = np.empty(shape=[0,3])
-        self.__TA = np.empty(shape=[0,1])
-        self.__TB = np.empty(shape=[0,1])
-
+        super().__init__() 
     
     def calibrate(self, A,B,X=None,rel=False):
         '''Computes the estimated rotation matrix and translation vector as well as the relative and 
@@ -26,6 +21,9 @@ class Cal_Park(Calibration):
         N = self._A.shape[0]
         I = np.eye(3)
         M = np.zeros((3,3))
+        _RA_I = np.empty(shape=[0,3])
+        _TA = np.empty(shape=[0,1])
+        _TB = np.empty(shape=[0,1])
 
         for i in range(N):
             An = self._A[i]
@@ -38,12 +36,12 @@ class Cal_Park(Calibration):
             M += outer(self.__log(RB), self.__log(RA))
 
             RA_I = RA - I
-            self.__RA_I = np.vstack([self.__RA_I,RA_I])
-            self.__TA = np.vstack([self.__TA,tA])
-            self.__TB = np.vstack([self.__TB,tB])
+            _RA_I = np.vstack([_RA_I,RA_I])
+            _TA = np.vstack([_TA,tA])
+            _TB = np.vstack([_TB,tB])
 
         self._Rx = np.dot(self.__invsqrt(np.dot(M.T, M)), M.T)
-        self._Tx = self.__get_translation(self._Rx,self.__RA_I,self.__TA,self.__TB).reshape(3,1)
+        self._Tx = self.__get_translation(self._Rx,_RA_I,_TA,_TB).reshape(3,1)
 
         rel_err = self._relative_error()
 

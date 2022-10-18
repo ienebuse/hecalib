@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name = "hecalib",
-    version = "1.0.1",
+    version = "1.2.0",
     author = "Ikenna Enebuse",
     author_email = "i.enebuse@gmail.com",
     description = "A python library for different implementations of handeye calibration for vision guided robots",

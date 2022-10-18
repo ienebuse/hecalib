@@ -11,12 +11,6 @@ class Cal_Tsai(Calibration):
     
     def __init__(self) -> None:
         super().__init__()
-        self.__S = np.empty(shape=[0,3])
-        self.__T = np.empty(shape=[0,1])
-        self.__RA_I = np.empty(shape=[0,3])
-        self.__TA = np.empty(shape=[0,1])
-        self.__TB = np.empty(shape=[0,1])
-
     
     def calibrate(self, A,B,X=None,rel=False):
         '''Computes the estimated rotation matrix and translation vector as well as the relative and 
@@ -25,6 +19,11 @@ class Cal_Tsai(Calibration):
         super().calibrate(A,B,X,rel)
         N = self._A.shape[0]
         I = np.eye(3)
+        _S = np.empty(shape=[0,3])
+        _T = np.empty(shape=[0,1])
+        _RA_I = np.empty(shape=[0,3])
+        _TA = np.empty(shape=[0,1])
+        _TB = np.empty(shape=[0,1])
 
         for i in range(N):
             An = self._A[i]
@@ -41,16 +40,16 @@ class Cal_Tsai(Calibration):
             T = uB - uA
             RA_I = RA - I
 
-            self.__S = np.vstack([self.__S,S])
-            self.__T = np.vstack([self.__T,T])
-            self.__RA_I = np.vstack([self.__RA_I,RA_I])
-            self.__TA = np.vstack([self.__TA,tA])
-            self.__TB = np.vstack([self.__TB,tB])
+            _S = np.vstack([_S,S])
+            _T = np.vstack([_T,T])
+            _RA_I = np.vstack([_RA_I,RA_I])
+            _TA = np.vstack([_TA,tA])
+            _TB = np.vstack([_TB,tB])
 
-        ux = self._solve_ls(self.__S,self.__T)
+        ux = self._solve_ls(_S,_T)
         uX = 2*ux/(np.sqrt(1+norm(ux)**2))
         self._Rx = (1-norm(uX)**2/2)*np.eye(3) + 0.5*(uX*uX.T + np.sqrt(4-norm(uX)**2)*self._skew(uX))
-        self._Tx = self.__get_translation(self._Rx,self.__RA_I,self.__TA,self.__TB).reshape(3,1)
+        self._Tx = self.__get_translation(self._Rx,_RA_I,_TA,_TB).reshape(3,1)
 
         rel_err = self._relative_error()
 

@@ -13,11 +13,6 @@ class Cal_Daniilidis(Calibration):
     
     def __init__(self) -> None:
         super().__init__()
-        self.__S = np.empty(shape=[0,8])
-        self.__RA_I = np.empty(shape=[0,3])
-        self.__TA = np.empty(shape=[0,1])
-        self.__TB = np.empty(shape=[0,1])
-
     
     def calibrate(self, A,B,X=None,rel=False):
         '''Computes the estimated rotation matrix and translation vector as well as the relative and 
@@ -25,7 +20,7 @@ class Cal_Daniilidis(Calibration):
         '''
         super().calibrate(A,B,X,rel)
         N = self._A.shape[0]
-        I = np.eye(3)
+        _S = np.empty(shape=[0,8])
 
         for i in range(N):
             An = self._A[i]
@@ -50,9 +45,9 @@ class Cal_Daniilidis(Calibration):
             s2 = np.hstack([s20,s21])
 
             S = np.vstack([s1,s2])        
-            self.__S = np.vstack([self.__S, S])
+            _S = np.vstack([_S, S])
 
-        _,_,VT = svd(self.__S)
+        _,_,VT = svd(_S)
         UV = VT.T[:,-2:]
         u1 = UV[:4,0].reshape(-1,1)
         v1 = UV[4:,0].reshape(-1,1)
