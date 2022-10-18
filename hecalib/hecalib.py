@@ -7,6 +7,7 @@ class Calibration():
     def __init__(self) -> None:
         self._Rx = None
         self._Tx = None
+        self.__PI = np.pi
         pass
 
     def calibrate(self, A, B,X=None,rel=False):
@@ -56,7 +57,8 @@ class Calibration():
         for i in range(N):
             dR = np.dot(inv(np.dot(self._Rx,self._B[i][:3,:3])),np.dot(self._A[i][:3,:3],self._Rx))
             dR = self.__get_orth_mat(dR)
-            dR = np.arccos(0.5*(1-np.trace(dR)))
+            dQ = self._mat_2_quaternion(dR)
+            dR = 2*np.arccos(dQ[0])
             sumR = sumR + dR
             
             dT = np.dot(self._A[i][:3,:3]-np.eye(3),self._Tx).ravel() - np.dot(self._Rx,self._B[i][:3,3]).ravel() + self._A[i][:3,3].ravel()
@@ -64,7 +66,7 @@ class Calibration():
 
         dT = sumT/N
         dR = sumR/N
-        return dR%3.1415926465653183, dT
+        return dR%self.__PI, dT
 
     def _absolute_error(self):
         '''Computes the absolute error from based on the supplied ground truth'''
@@ -72,9 +74,10 @@ class Calibration():
 
         R = self.__get_orth_mat(self._Rx)
         dR = np.dot(inv(R),self._X[:3,:3])
-        dR = np.arccos(0.5*(1-np.trace(dR)))
+        dQ = self._mat_2_quaternion(dR)
+        dR = 2*np.arccos(dQ[0])
         dT = norm(self._X[:3,3].ravel()-self._Tx.ravel())
-        return dR%3.1415926465653183, dT
+        return dR, dT
 
 
     def __get_orth_mat(self,R):
@@ -104,6 +107,20 @@ class Calibration():
         R_y = np.array([[np.cos(y),0,np.sin(y)],[0,1,0],[-np.sin(y),0,np.cos(y)]])
         R_z = np.array([[np.cos(z),-np.sin(z),0],[np.sin(z),np.cos(z),0],[0,0,1]])
         return np.dot(R_z,np.dot(R_y,R_x))
+
+    
+    def _e(self,Q,p):
+        Q = Q.ravel()
+        if Q.size == 3:
+            q0 = 0
+            q = Q
+        else:
+            q0 = Q[0]
+            q = Q[1:]
+        g1 = np.hstack([np.array([[q0]]), -q.reshape(1,3)])
+        g2 = np.hstack([q.reshape(3,1), q0*np.eye(3) - np.sign(p)*self._skew(q)])
+        G = np.vstack([g1,g2])
+        return G
 
     @staticmethod
     def _get_rad(deg):
@@ -144,3 +161,19 @@ class Calibration():
                     [2*(q[1]*q[2] + q[0]*q[3]), 2*(q[0]*q[0] + q[2]*q[2]) - 1, 2*(q[2]*q[3] - q[0]*q[1])], \
                     [2*(q[1]*q[3] - q[0]*q[2]), 2*(q[2]*q[3] + q[0]*q[1]), 2*(q[0]*q[0] + q[3]*q[3]) - 1]])
         return R
+
+    @staticmethod
+    def _mat_2_quaternion(R):
+        qw= 0.5*np.sqrt(1 + R[0,0] + R[1,1] + R[2,2])
+        qx = (R[2,1] - R[1,2])/( 4 *qw)
+        qy = (R[0,2] - R[2,0])/( 4 *qw)
+        qz = (R[1,0] - R[0,1])/( 4 *qw)
+        return np.array([qw, qx, qy, qz])
+
+    @staticmethod
+    def _quat_dist(q1,q2):
+        dist = np.arccos(np.abs(np.dot(q1.reshape(1,-1),q2.reshape(-1,1))))
+        return dist
+
+    
+    
