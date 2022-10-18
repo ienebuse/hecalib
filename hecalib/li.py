@@ -7,11 +7,11 @@ from numpy.linalg import inv, det, svd, eig, norm, pinv
 from .hand_eye_calibration import Calibration
 
 
-class Cal_Tsai(Calibration):
+class Cal_Li(Calibration):
     
     def __init__(self) -> None:
         super().__init__()
-        self.__S = np.empty(shape=[0,3])
+        self.__S = np.empty(shape=[0,12])
         self.__T = np.empty(shape=[0,1])
         self.__RA_I = np.empty(shape=[0,3])
         self.__TA = np.empty(shape=[0,1])
@@ -25,33 +25,29 @@ class Cal_Tsai(Calibration):
         super().calibrate(A,B,X,rel)
         N = self._A.shape[0]
         I = np.eye(3)
+        I9 = np.eye(9)
 
         for i in range(N):
             An = self._A[i]
             Bn = self._B[i]
             RA = An[:3,:3]
             tA = An[:3,3].reshape(3,1)
+            tA_ = self._skew(tA)
             RB = Bn[:3,:3]
             tB = Bn[:3,3].reshape(3,1)
             
-            uA, wA = self._mat_2_angle_axis(RA)
-            uB, wB = self._mat_2_angle_axis(RB)
-
-            S = self._skew(uA + uB)
-            T = uB - uA
-            RA_I = RA - I
+            s1 = np.hstack([I9 - np.kron(RB,RA), np.zeros((9,3))])
+            s2 = np.hstack([np.kron(tB.T,tA_), np.dot(tA_,(I-RA))])
+            S = np.vstack([s1, s2])
+            T = np.vstack([np.zeros((9,1)),tA.reshape(3,1)])
 
             self.__S = np.vstack([self.__S,S])
             self.__T = np.vstack([self.__T,T])
-            self.__RA_I = np.vstack([self.__RA_I,RA_I])
-            self.__TA = np.vstack([self.__TA,tA])
-            self.__TB = np.vstack([self.__TB,tB])
 
-        ux = self._solve_ls(self.__S,self.__T)
-        uX = 2*ux/(np.sqrt(1+norm(ux)**2))
-        self._Rx = (1-norm(uX)**2/2)*np.eye(3) + 0.5*(uX*uX.T + np.sqrt(4-norm(uX)**2)*self._skew(uX))
-        self._Tx = self.__get_translation(self._Rx,self.__RA_I,self.__TA,self.__TB).reshape(3,1)
-
+        Rx_tX = self._solve_svd(self.__S)
+        self._Rx,self._Tx = self.__get_rx_tx(Rx_tX)
+        self._Rx = self._get_orth_mat(self._Rx)
+        
         rel_err = self._relative_error()
 
         if(X is not None):
@@ -69,5 +65,18 @@ class Cal_Tsai(Calibration):
         T = RxTB - TA
         tX = np.dot(pinv(RA_I),T)
         return tX
+
+    @staticmethod
+    def __get_rx_tx(X):
+        _Rx = X[:9].reshape(3,3)
+        _tX = X[9:]
+
+        w = det(_Rx)
+        w = np.sign(w)/(abs(w)**(1/3))
+
+        Rx = w*_Rx
+        tX = w*_tX
+
+        return Rx.T,tX
 
     

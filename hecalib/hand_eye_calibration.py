@@ -56,7 +56,7 @@ class Calibration():
         N = self._A.shape[0]
         for i in range(N):
             dR = np.dot(inv(np.dot(self._Rx,self._B[i][:3,:3])),np.dot(self._A[i][:3,:3],self._Rx))
-            dR = self.__get_orth_mat(dR)
+            dR = self._get_orth_mat(dR)
             dQ = self._mat_2_quaternion(dR)
             dR = 2*np.arccos(dQ[0])
             sumR = sumR + dR
@@ -72,7 +72,7 @@ class Calibration():
         '''Computes the absolute error from based on the supplied ground truth'''
         assert self._X is not None, "X was not provided. Absolute error can only be computed with ground truth X"
 
-        R = self.__get_orth_mat(self._Rx)
+        R = self._get_orth_mat(self._Rx)
         dR = np.dot(inv(R),self._X[:3,:3])
         dQ = self._mat_2_quaternion(dR)
         dR = 2*np.arccos(dQ[0])
@@ -80,7 +80,7 @@ class Calibration():
         return dR, dT
 
 
-    def __get_orth_mat(self,R):
+    def _get_orth_mat(self,R):
         '''Get the rotation matrix that satisfies othorgonality'''
         u,s,v = svd(R)
         return np.dot(u,v)
