@@ -172,6 +172,7 @@ class Calibration():
 
     @staticmethod
     def _mat_2_quaternion(R):
+        '''Converts a rotation matrix to quaternion representation'''
         qw= 0.5*np.sqrt(1 + R[0,0] + R[1,1] + R[2,2])
         qx = (R[2,1] - R[1,2])/( 4 *qw)
         qy = (R[0,2] - R[2,0])/( 4 *qw)
@@ -180,6 +181,7 @@ class Calibration():
 
     @staticmethod
     def _quat_dist(q1,q2):
+        '''Computes the distance between two quaternions'''
         dist = np.arccos(np.abs(np.dot(q1.reshape(1,-1),q2.reshape(-1,1))))
         return dist
 
