@@ -145,12 +145,20 @@ class Calibration():
                         [-x[1], x[0], 0]])
 
     @staticmethod
-    def solve_svd(A: np.ndarray)->np.ndarray:
+    def _solve_svd(A: np.ndarray)->np.ndarray:
         '''Computes the null space of a matrix based on singular value decomposition'''
         U,S,VT = svd(A)
-
-        '''Solution using matrix kernel'''
         x = VT.T[:,-1]
+        return x
+
+    @staticmethod
+    def _solve_ls(A,B)->np.ndarray:
+        '''Compute least square solution for Ax=B using singular value decomposition'''
+        u,s,v = svd(A)
+        _s = inv(np.diag(s))
+        _ss = np.zeros((3,u.shape[0]))
+        _ss[:3,:3] = _s
+        x = np.dot(np.dot(v.T,_ss),np.dot(u.T,B))
         return x
 
     @staticmethod

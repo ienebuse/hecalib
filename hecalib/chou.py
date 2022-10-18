@@ -8,7 +8,7 @@ from numpy.linalg import inv, det, svd, eig, norm, pinv
 from .hand_eye_calibration import Calibration
 
 
-class Cal_TsaiLenz(Calibration):
+class Cal_Chou(Calibration):
     
     def __init__(self) -> None:
         super().__init__()
@@ -48,10 +48,8 @@ class Cal_TsaiLenz(Calibration):
             self.__TA = np.vstack([self.__TA,tA])
             self.__TB = np.vstack([self.__TB,tB])
 
-        x = self.solve_svd(self.__G)
-
+        x = self._solve_svd(self.__G)
         self._Rx = self._quaternion_2_mat(x.ravel())
-
         self._Tx = self.__get_translation(self._Rx,self.__RA_I,self.__TA,self.__TB).reshape(3,1)
 
         rel_err = self._relative_error()

@@ -74,7 +74,6 @@ class Cal_Daniilidis(Calibration):
         qx_ = x[0]*v1 + x[1]*v2
 
         self._Rx = self._quaternion_2_mat(qx)
-
         self._Tx = 2*np.dot(inv(self._e(qx,1)),qx_)[1:]
 
         rel_err = self._relative_error()
