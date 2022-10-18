@@ -5,7 +5,7 @@ pp. 656–662'''
 
 import numpy as np
 from numpy.linalg import inv, det, svd, eig, norm, pinv
-from hecalib import Calibration
+from hecalib.hecalib import Calibration
 
 
 class Cal_TsaiLenz(Calibration):
