@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name = "hecalib",
-    version = "1.0.0",
+    version = "1.0.1",
     author = "Ikenna Enebuse",
     author_email = "i.enebuse@gmail.com",
-    description = "A simple python library for different methods of handeye calibration for vision guided robots",
+    description = "A python library for different implementations of handeye calibration for vision guided robots",
     long_description = long_description,
     long_description_content_type = "text/markdown",
     url = "https://github.com/ienebuse/hecalib",

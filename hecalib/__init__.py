@@ -1,2 +1,2 @@
-from .TsaiLenz import Cal_TsaiLenz
-from .Daniilidis import Cal_Daniilidis
+from .tsailenz import Cal_TsaiLenz
+from .daniilidis import Cal_Daniilidis
